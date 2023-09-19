@@ -9,7 +9,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(LoginApp());
+  runApp(await checkUserLoggedIn() ? TodoApp() : LoginApp());
+}
+
+Future<bool> checkUserLoggedIn() async {
+  User? user = FirebaseAuth.instance.currentUser;
+  return user != null;
 }
 
 class LoginApp extends StatelessWidget {
@@ -54,7 +59,7 @@ class _LoginPageState extends State<LoginPage> {
         });
 
         // Navigate to the home screen
-        Navigator.push(
+        Navigator.pushReplacement(
             context, MaterialPageRoute(builder: (context) => TodoList()));
       } else {
         print('Sign-in failed.');
@@ -129,7 +134,12 @@ class _LoginPageState extends State<LoginPage> {
               ),
               SizedBox(height: 10.0),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ForgotPasswordPage()));
+                },
                 style: TextButton.styleFrom(
                   primary: Color.fromARGB(255, 30, 92, 143),
                 ),
@@ -142,7 +152,7 @@ class _LoginPageState extends State<LoginPage> {
                   Text('Don\'t have an account? '),
                   TextButton(
                     onPressed: () {
-                      Navigator.push(
+                      Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
                               builder: (context) => SignUpPage()));

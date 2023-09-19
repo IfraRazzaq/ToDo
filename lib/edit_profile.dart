@@ -6,13 +6,13 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  TextEditingController _nameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
+  String title = 'Edit Profile!';
+  String description = 'Edit your profile here.';
 
   @override
   void initState() {
     super.initState();
-    // _nameController.text = 'Ifra Razzaq';
     _emailController.text;
   }
 
@@ -28,7 +28,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             children: <Widget>[
               SizedBox(height: 40.0),
               Text(
-                'Edit Profile!',
+                title,
                 style: TextStyle(
                   fontSize: 32.0,
                   fontWeight: FontWeight.bold,
@@ -48,7 +48,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               SizedBox(height: 20.0),
               ElevatedButton(
                 onPressed: () {
-                  // Save the edited profile information
                   _saveProfileChanges();
                 },
                 style: ElevatedButton.styleFrom(
@@ -67,8 +66,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _saveProfileChanges() {
-    String newName = _nameController.text.trim();
     String newEmail = _emailController.text.trim();
+    // Update the title and description here with the new values.
+    setState(() {
+      title = 'New Title';
+      description = 'New Description';
+    });
+
     final snackBar = SnackBar(
       content: Text('Profile changes saved!'),
     );

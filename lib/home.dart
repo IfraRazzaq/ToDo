@@ -4,6 +4,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:task1/profile.dart';
 
 class TodoApp extends StatelessWidget {
   @override
@@ -166,10 +167,99 @@ class _TodoListState extends State<TodoList> {
     );
   }
 
+  void _editTodo(int index, TodoItem todo) {
+    TextEditingController titleController =
+        TextEditingController(text: todo.title);
+    TextEditingController descriptionController =
+        TextEditingController(text: todo.description);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Edit To-Do'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              TextField(
+                controller: titleController,
+                decoration: InputDecoration(labelText: 'Title'),
+              ),
+              TextField(
+                controller: descriptionController,
+                decoration: InputDecoration(labelText: 'Description'),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Save'),
+              onPressed: () async {
+                String updatedTitle = titleController.text.trim();
+                String updatedDescription = descriptionController.text.trim();
+
+                if (updatedTitle.isNotEmpty && _user != null) {
+                  await FirebaseFirestore.instance
+                      .collection('todos')
+                      .doc(todo.title) // Use todo.title as the document ID
+                      .update({
+                    'title': updatedTitle,
+                    'description': updatedDescription,
+                  });
+                  _fetchTodos();
+                }
+
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteTodo(TodoItem todo) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirm Delete'),
+          content: Text('Are you sure you want to delete this to-do?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Delete'),
+              onPressed: () async {
+                await FirebaseFirestore.instance
+                    .collection('todos')
+                    .doc(todo.title) // Use todo.title as the document ID
+                    .delete();
+
+                _fetchTodos();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _uploadImageToFirestore(String todoId, File imageFile) async {
     if (imageFile != null) {
       try {
-        final fileName = 'todo_images/$todoId.png';
+        final fileName = 'todo_images/todoId.png';
         final storageRef = FirebaseStorage.instance.ref().child(fileName);
         final uploadTask = storageRef.putFile(imageFile);
 
@@ -200,7 +290,11 @@ class _TodoListState extends State<TodoList> {
           IconButton(
             icon: Icon(Icons.account_circle),
             onPressed: () {
-              // Handle profile button click
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(),
+                ),
+              );
             },
           ),
         ],
@@ -220,12 +314,14 @@ class _TodoListState extends State<TodoList> {
                       IconButton(
                         icon: Icon(Icons.edit),
                         onPressed: () {
-                          // Handle edit button click
+                          _editTodo(index, todo);
                         },
                       ),
                       IconButton(
                         icon: Icon(Icons.delete),
-                        onPressed: () {},
+                        onPressed: () {
+                          _deleteTodo(todo);
+                        },
                       ),
                     ],
                   ),
