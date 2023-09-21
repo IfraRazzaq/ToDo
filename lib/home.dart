@@ -20,8 +20,8 @@ class TodoApp extends StatelessWidget {
 }
 
 class TodoItem {
-  final String title;
-  final String description;
+  String title;
+  String description;
   final String imageUrl;
 
   TodoItem({
@@ -141,7 +141,7 @@ class _TodoListState extends State<TodoList> {
                     'uid': _user!.uid,
                     'title': title,
                     'description': description,
-                    'imageUrl': '', // Store the image URL in Firestore
+                    'imageUrl': '',
                   });
 
                   await _uploadImageToFirestore(newTodoRef.id, _imageFile!);
@@ -167,7 +167,52 @@ class _TodoListState extends State<TodoList> {
     );
   }
 
+  void _deleteTodo(TodoItem todo) async {
+    TodoItem todoToDelete = TodoItem(
+      title: todo.title,
+      description: todo.description,
+      imageUrl: todo.imageUrl,
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirm Delete'),
+          content: Text('Are you sure you want to delete this to-do?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Delete'),
+              onPressed: () async {
+                await FirebaseFirestore.instance
+                    .collection('todos')
+                    .doc(todoToDelete.title)
+                    .delete();
+
+                _fetchTodos();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _editTodo(int index, TodoItem todo) {
+    // Create an instance of TodoItem to represent the to-do item being edited
+    TodoItem todoToEdit = TodoItem(
+      title: todo.title,
+      description: todo.description,
+      imageUrl: todo.imageUrl,
+    );
+
     TextEditingController titleController =
         TextEditingController(text: todo.title);
     TextEditingController descriptionController =
@@ -195,16 +240,22 @@ class _TodoListState extends State<TodoList> {
             TextButton(
               child: Text('Save'),
               onPressed: () async {
+                // Retrieve the updated values from the text controllers
                 String updatedTitle = titleController.text.trim();
                 String updatedDescription = descriptionController.text.trim();
 
+                // Update the properties of the todoToEdit instance
+                todoToEdit.title = updatedTitle;
+                todoToEdit.description = updatedDescription;
+
                 if (updatedTitle.isNotEmpty && _user != null) {
+                  // Now you can use todoToEdit to update the Firestore document
                   await FirebaseFirestore.instance
                       .collection('todos')
-                      .doc(todo.title) // Use todo.title as the document ID
+                      .doc(todo.title) // Use the original title
                       .update({
-                    'title': updatedTitle,
-                    'description': updatedDescription,
+                    'title': todoToEdit.title,
+                    'description': todoToEdit.description,
                   });
                   _fetchTodos();
                 }
@@ -215,38 +266,6 @@ class _TodoListState extends State<TodoList> {
             TextButton(
               child: Text('Cancel'),
               onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _deleteTodo(TodoItem todo) async {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Confirm Delete'),
-          content: Text('Are you sure you want to delete this to-do?'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Delete'),
-              onPressed: () async {
-                await FirebaseFirestore.instance
-                    .collection('todos')
-                    .doc(todo.title) // Use todo.title as the document ID
-                    .delete();
-
-                _fetchTodos();
                 Navigator.of(context).pop();
               },
             ),

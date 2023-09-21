@@ -100,7 +100,7 @@ class _LoginPageState extends State<LoginPage> {
                 controller: emailController,
                 decoration: InputDecoration(
                   labelText: 'Email',
-                  prefixIcon: Icon(Icons.person),
+                  prefixIcon: Icon(Icons.email),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(40.0),
                   ),
@@ -130,7 +130,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 child: isLoading
                     ? CircularProgressIndicator() // Show loading indicator
-                    : Text('Login'),
+                    : Text('Log In'),
               ),
               SizedBox(height: 10.0),
               TextButton(
