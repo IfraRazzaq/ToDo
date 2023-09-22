@@ -24,12 +24,14 @@ class TodoItem {
   String description;
   final String imageUrl;
   String id;
+  String email;
 
   TodoItem({
     required this.title,
     required this.description,
     required this.imageUrl,
     required this.id,
+    required this.email,
   });
 }
 
@@ -76,13 +78,16 @@ class _TodoListState extends State<TodoList> {
               description: data['description'],
               imageUrl: data['imageUrl'] ?? '',
               id: document.id,
+              email: data['email'] ?? "",
             );
           } else {
             return TodoItem(
-                title: 'Title Missing',
-                description: 'Description Missing',
-                imageUrl: '',
-                id: document.id);
+              title: 'Title Missing',
+              description: 'Description Missing',
+              imageUrl: '',
+              id: document.id,
+              email: data?['email'] ?? "",
+            );
           }
         }).toList();
       }
@@ -176,6 +181,7 @@ class _TodoListState extends State<TodoList> {
       description: todo.description,
       imageUrl: todo.imageUrl,
       id: todo.id,
+      email: todo.email,
     );
 
     showDialog(
@@ -216,12 +222,15 @@ class _TodoListState extends State<TodoList> {
       description: todo.description,
       imageUrl: todo.imageUrl,
       id: todo.id,
+      email: todo.email,
     );
 
     TextEditingController titleController =
         TextEditingController(text: todo.title);
     TextEditingController descriptionController =
         TextEditingController(text: todo.description);
+    TextEditingController emailController =
+        TextEditingController(text: todo.email);
 
     showDialog(
       context: context,
@@ -239,6 +248,10 @@ class _TodoListState extends State<TodoList> {
                 controller: descriptionController,
                 decoration: InputDecoration(labelText: 'Description'),
               ),
+              TextField(
+                controller: emailController,
+                decoration: InputDecoration(labelText: 'Email'),
+              ),
             ],
           ),
           actions: <Widget>[
@@ -247,8 +260,10 @@ class _TodoListState extends State<TodoList> {
               onPressed: () async {
                 String updatedTitle = titleController.text.trim();
                 String updatedDescription = descriptionController.text.trim();
+                String updatedEmail = emailController.text.trim();
                 todoToEdit.title = updatedTitle;
                 todoToEdit.description = updatedDescription;
+                todoToEdit.email = updatedEmail;
 
                 if (updatedTitle.isNotEmpty && _user != null) {
                   await FirebaseFirestore.instance
@@ -257,6 +272,7 @@ class _TodoListState extends State<TodoList> {
                       .update({
                     'title': todoToEdit.title,
                     'description': todoToEdit.description,
+                    'email': todoToEdit.email,
                   });
                   _fetchTodos();
                 }
@@ -327,7 +343,21 @@ class _TodoListState extends State<TodoList> {
 
                 return ListTile(
                   title: Text(todo.title),
-                  subtitle: Text(todo.description),
+                  subtitle: Column(
+                    children: [
+                      Text(todo.description),
+                      if (todo.imageUrl.isNotEmpty)
+                        GestureDetector(
+                          onTap: () {
+                            _showImageDialog(context, todo.imageUrl);
+                          },
+                          child: ImageIcon(
+                            NetworkImage(todo.imageUrl),
+                            size: 27,
+                          ),
+                        )
+                    ],
+                  ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -375,6 +405,26 @@ class _TodoListState extends State<TodoList> {
               child: Icon(Icons.add),
             )
           : null,
+    );
+  }
+
+  void _showImageDialog(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: NetworkImage(imageUrl),
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

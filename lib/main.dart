@@ -39,12 +39,12 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-  bool isLoading = false; // Add a isLoading flag
+  bool isLoading = false;
 
   Future<void> _login() async {
     try {
       setState(() {
-        isLoading = true; // Set isLoading to true while logging in
+        isLoading = true;
       });
 
       UserCredential userCredential =
@@ -58,7 +58,7 @@ class _LoginPageState extends State<LoginPage> {
           'email': emailController.text,
         });
 
-        // Navigate to the home screen
+        // Navigate to home screen
         Navigator.pushReplacement(
             context, MaterialPageRoute(builder: (context) => TodoList()));
       } else {
@@ -73,8 +73,7 @@ class _LoginPageState extends State<LoginPage> {
       );
     } finally {
       setState(() {
-        isLoading =
-            false; // Set isLoading back to false after login is complete
+        isLoading = false;
       });
     }
   }
