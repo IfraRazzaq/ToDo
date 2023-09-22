@@ -23,11 +23,13 @@ class TodoItem {
   String title;
   String description;
   final String imageUrl;
+  String id;
 
   TodoItem({
     required this.title,
     required this.description,
     required this.imageUrl,
+    required this.id,
   });
 }
 
@@ -73,13 +75,14 @@ class _TodoListState extends State<TodoList> {
               title: data['title'],
               description: data['description'],
               imageUrl: data['imageUrl'] ?? '',
+              id: document.id,
             );
           } else {
             return TodoItem(
-              title: 'Title Missing',
-              description: 'Description Missing',
-              imageUrl: '',
-            );
+                title: 'Title Missing',
+                description: 'Description Missing',
+                imageUrl: '',
+                id: document.id);
           }
         }).toList();
       }
@@ -172,6 +175,7 @@ class _TodoListState extends State<TodoList> {
       title: todo.title,
       description: todo.description,
       imageUrl: todo.imageUrl,
+      id: todo.id,
     );
 
     showDialog(
@@ -190,9 +194,10 @@ class _TodoListState extends State<TodoList> {
             TextButton(
               child: Text('Delete'),
               onPressed: () async {
+                debugPrint(todoToDelete.title);
                 await FirebaseFirestore.instance
                     .collection('todos')
-                    .doc(todoToDelete.title)
+                    .doc(todoToDelete.id)
                     .delete();
 
                 _fetchTodos();
@@ -206,11 +211,11 @@ class _TodoListState extends State<TodoList> {
   }
 
   void _editTodo(int index, TodoItem todo) {
-    // Create an instance of TodoItem to represent the to-do item being edited
     TodoItem todoToEdit = TodoItem(
       title: todo.title,
       description: todo.description,
       imageUrl: todo.imageUrl,
+      id: todo.id,
     );
 
     TextEditingController titleController =
@@ -240,19 +245,15 @@ class _TodoListState extends State<TodoList> {
             TextButton(
               child: Text('Save'),
               onPressed: () async {
-                // Retrieve the updated values from the text controllers
                 String updatedTitle = titleController.text.trim();
                 String updatedDescription = descriptionController.text.trim();
-
-                // Update the properties of the todoToEdit instance
                 todoToEdit.title = updatedTitle;
                 todoToEdit.description = updatedDescription;
 
                 if (updatedTitle.isNotEmpty && _user != null) {
-                  // Now you can use todoToEdit to update the Firestore document
                   await FirebaseFirestore.instance
                       .collection('todos')
-                      .doc(todo.title) // Use the original title
+                      .doc(todoToEdit.id)
                       .update({
                     'title': todoToEdit.title,
                     'description': todoToEdit.description,
