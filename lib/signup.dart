@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:task1/main.dart';
+import 'package:task1/login.dart';
 
 class SignUpApp extends StatelessWidget {
   @override
@@ -91,8 +92,7 @@ class _SignUpPageState extends State<SignUpPage> {
               ElevatedButton(
                 onPressed: _signUp,
                 style: ElevatedButton.styleFrom(
-                  primary: Color.fromARGB(
-                      255, 30, 92, 143), // Dark blue button background color
+                  primary: Color.fromARGB(255, 30, 92, 143),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20.0),
                   ),

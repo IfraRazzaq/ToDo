@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:task1/edit_profile.dart';
+import 'package:task1/login.dart';
 import 'package:task1/main.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -44,6 +45,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    fetchUserEmail();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
@@ -80,7 +87,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SizedBox(height: 40.0),
                 CircleAvatar(
                   radius: 50.0,
-                  // backgroundImage: AssetImage('assets/profile_image.jpg'),
                 ),
                 SizedBox(height: 10.0),
                 TextFormField(

@@ -1,4 +1,8 @@
-import 'package:flutter/material.dart';                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ;
+import 'dart:js';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:task1/profile.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class EditProfileScreen extends StatefulWidget {
   @override
@@ -7,76 +11,70 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   TextEditingController _emailController = TextEditingController();
-  String title = 'Edit Profile!';
-  String description = 'Edit your profile here.';
 
   @override
   void initState() {
     super.initState();
-    _emailController.text;
+    _emailController.text = FirebaseAuth.instance.currentUser?.email ?? '';
+  }
+
+  void _saveProfileChanges() async {
+    String newEmail = _emailController.text.trim();
+
+    if (newEmail != FirebaseAuth.instance.currentUser?.email) {
+      try {
+        await FirebaseAuth.instance.currentUser?.updateEmail(newEmail);
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(FirebaseAuth.instance.currentUser?.uid)
+            .update({'email': newEmail});
+
+        Navigator.pop(context as BuildContext);
+      } catch (e) {
+        print('Error updating email: $e');
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              SizedBox(height: 40.0),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 32.0,
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 30, 92, 143),
+      appBar: AppBar(
+        title: Text('Edit Profile'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            TextFormField(
+              controller: _emailController,
+              style: TextStyle(
+                fontSize: 16.0,
+              ),
+              decoration: InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(40.0),
                 ),
               ),
-              SizedBox(height: 20.0),
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(40.0),
-                  ),
+            ),
+            SizedBox(height: 20.0),
+            ElevatedButton(
+              onPressed: () {
+                _saveProfileChanges();
+              },
+              style: ElevatedButton.styleFrom(
+                primary: Color.fromARGB(255, 30, 92, 143),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.0),
                 ),
               ),
-              SizedBox(height: 20.0),
-              ElevatedButton(
-                onPressed: () {
-                  _saveProfileChanges();
-                },
-                style: ElevatedButton.styleFrom(
-                  primary: Color.fromARGB(255, 30, 92, 143),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30.0),
-                  ),
-                ),
-                child: Text('Save'),
-              ),
-            ],
-          ),
+              child: Text('Save'),
+            ),
+          ],
         ),
       ),
     );
-  }
-
-  void _saveProfileChanges() {
-    String newEmail = _emailController.text.trim();
-    // Update the title and description here with the new values.
-    setState(() {
-      title = 'New Title';
-      description = 'New Description';
-    });
-
-    final snackBar = SnackBar(
-      content: Text('Profile changes saved!'),
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 }
