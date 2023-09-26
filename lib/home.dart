@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:task1/profile.dart';
 import 'package:task1/main.dart';
+import 'dart:ui';
 
 class TodoApp extends StatelessWidget {
   @override
@@ -100,77 +101,107 @@ class _TodoListState extends State<TodoList> {
     });
   }
 
+  bool _isLoading = false;
+
   void _addTodo() async {
     File? _imageFile;
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Add what To-Do'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextField(
-                controller: _titleController,
-                decoration: InputDecoration(labelText: 'Title'),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Add what To-Do'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  TextField(
+                    controller: _titleController,
+                    decoration: InputDecoration(labelText: 'Title'),
+                  ),
+                  TextField(
+                    controller: _descriptionController,
+                    decoration: InputDecoration(labelText: 'Description'),
+                  ),
+                  SizedBox(height: 8.0),
+                  if (_imageFile != null)
+                    InkWell(
+                      child: Text(
+                        "Image Selected",
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  if (_imageFile == null)
+                    ElevatedButton(
+                      onPressed: () async {
+                        final picker = ImagePicker();
+                        final pickedFile =
+                            await picker.pickImage(source: ImageSource.gallery);
+                        SizedBox(height: 8.0);
+                        if (pickedFile != null) {
+                          setState(() {
+                            _imageFile = File(pickedFile.path);
+                          });
+                        } else {
+                          // Handle the case where the user canceled image selection
+                        }
+                      },
+                      child: Text('Select Image'),
+                    ),
+                ],
               ),
-              TextField(
-                controller: _descriptionController,
-                decoration: InputDecoration(labelText: 'Description'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  final picker = ImagePicker();
-                  final pickedFile =
-                      await picker.pickImage(source: ImageSource.gallery);
+              actions: <Widget>[
+                _isLoading
+                    ? CircularProgressIndicator()
+                    : TextButton(
+                        child: Text('Add'),
+                        onPressed: () async {
+                          setState(() {
+                            _isLoading = true;
+                          });
 
-                  if (pickedFile != null) {
-                    setState(() {
-                      _imageFile = File(pickedFile.path);
-                    });
-                  } else {
-                    // Handle the case where the user canceled image selection
-                  }
-                },
-                child: Text('Select Image'),
-              ),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Add'),
-              onPressed: () async {
-                String title = _titleController.text.trim();
-                String description = _descriptionController.text.trim();
+                          String title = _titleController.text.trim();
+                          String description =
+                              _descriptionController.text.trim();
 
-                if (title.isNotEmpty && _user != null) {
-                  final newTodoRef =
-                      await FirebaseFirestore.instance.collection('todos').add({
-                    'uid': _user!.uid,
-                    'title': title,
-                    'description': description,
-                    'imageUrl': '',
-                  });
+                          if (title.isNotEmpty && _user != null) {
+                            final newTodoRef = await FirebaseFirestore.instance
+                                .collection('todos')
+                                .add({
+                              'uid': _user!.uid,
+                              'title': title,
+                              'description': description,
+                              'imageUrl': '',
+                            });
+                            await _uploadImageToFirestore(
+                                newTodoRef.id, _imageFile!);
+                            _fetchTodos();
+                          }
 
-                  await _uploadImageToFirestore(newTodoRef.id, _imageFile!);
-                  _fetchTodos();
-                }
+                          setState(() {
+                            _isLoading = false;
+                          });
 
-                _titleController.clear();
-                _descriptionController.clear();
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                _titleController.clear();
-                _descriptionController.clear();
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+                          _titleController.clear();
+                          _descriptionController.clear();
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                TextButton(
+                  child: Text('Cancel'),
+                  onPressed: () {
+                    _titleController.clear();
+                    _descriptionController.clear();
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -342,39 +373,50 @@ class _TodoListState extends State<TodoList> {
               itemBuilder: (context, index) {
                 final todo = todos[index];
 
-                return ListTile(
-                  title: Text(todo.title),
-                  subtitle: Column(
-                    children: [
-                      Text(todo.description),
-                      if (todo.imageUrl.isNotEmpty)
-                        GestureDetector(
-                          onTap: () {
-                            _showImageDialog(context, todo.imageUrl);
-                          },
-                          child: ImageIcon(
-                            NetworkImage(todo.imageUrl),
-                            size: 27,
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Card(
+                    elevation: 2.0,
+                    child: ListTile(
+                      title: Text(todo.title),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(todo.description),
+                          SizedBox(height: 8.0),
+                          if (todo.imageUrl.isNotEmpty)
+                            InkWell(
+                              onTap: () {
+                                _showImageDialog(context, todo.imageUrl);
+                              },
+                              child: Text(
+                                "Image Selected",
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            )
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit),
+                            onPressed: () {
+                              _editTodo(index, todo);
+                            },
                           ),
-                        )
-                    ],
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.edit),
-                        onPressed: () {
-                          _editTodo(index, todo);
-                        },
+                          IconButton(
+                            icon: Icon(Icons.delete),
+                            onPressed: () {
+                              _deleteTodo(todo);
+                            },
+                          ),
+                        ],
                       ),
-                      IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () {
-                          _deleteTodo(todo);
-                        },
-                      ),
-                    ],
+                    ),
                   ),
                 );
               },
@@ -413,16 +455,26 @@ class _TodoListState extends State<TodoList> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return Dialog(
-          child: Container(
-            width: 300,
-            height: 300,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: NetworkImage(imageUrl),
-                fit: BoxFit.contain,
-              ),
+        return AlertDialog(
+          title: Text('Image Preview'),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.close),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
             ),
+          ],
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.network(
+                imageUrl,
+                width: 200,
+                height: 200,
+                fit: BoxFit.cover,
+              ),
+            ],
           ),
         );
       },

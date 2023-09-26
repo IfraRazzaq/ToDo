@@ -61,7 +61,7 @@ class ForgotPasswordPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20.0),
                   ), // Dark blue button background color
                 ),
-                child: Text('Send Code'),
+                child: Text('Send Reset Link'),
               ),
             ),
             SizedBox(height: 10.0),
@@ -71,7 +71,7 @@ class ForgotPasswordPage extends StatelessWidget {
                   // Implement your "Resend Link" logic here
                   // You can resend the reset password link or code
                 },
-                child: Text('Resend OTP'),
+                child: Text('Resend Email'),
               ),
             ),
           ],

@@ -102,7 +102,8 @@ class _SignUpPageState extends State<SignUpPage> {
               SizedBox(height: 10.0),
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) => LoginPage()));
                 },
                 style: TextButton.styleFrom(
                   primary: Color.fromARGB(255, 30, 92, 143),

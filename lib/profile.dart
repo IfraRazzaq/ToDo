@@ -11,7 +11,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String userEmail = ''; // Store user's email address
+  String userEmail = '';
 
   @override
   void initState() {

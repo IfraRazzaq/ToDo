@@ -108,17 +108,14 @@ class _LoginPageState extends State<LoginPage> {
               ),
               SizedBox(height: 20.0),
               ElevatedButton(
-                onPressed:
-                    isLoading ? null : _login, // Disable button when loading
+                onPressed: isLoading ? null : _login,
                 style: ElevatedButton.styleFrom(
                   primary: Color.fromARGB(255, 30, 92, 143),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20.0),
                   ),
                 ),
-                child: isLoading
-                    ? CircularProgressIndicator() // Show loading indicator
-                    : Text('Log In'),
+                child: isLoading ? CircularProgressIndicator() : Text('Log In'),
               ),
               SizedBox(height: 10.0),
               TextButton(
