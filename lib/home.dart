@@ -4,6 +4,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:task1/friends.dart';
 import 'package:task1/profile.dart';
 import 'package:task1/main.dart';
 import 'dart:ui';
@@ -421,15 +422,20 @@ class _TodoListState extends State<TodoList> {
                 );
               },
             )
-          : Center(
-              child: Text('Friends Screen Content'),
-            ),
+          : Friends(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
             _currentIndex = index;
           });
+          if (index == 1) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => Friends(),
+              ),
+            );
+          }
         },
         items: [
           BottomNavigationBarItem(
